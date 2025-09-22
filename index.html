@@ -118,6 +118,23 @@ function stopTimer() {
   const elapsed = (Date.now() - startTime) / 1000;
   return elapsed.toFixed(2);
 }
+const validCodes = [
+  "4006381333931",
+  "5012345678900",
+  "5901234123457",
+  "0123456789012",
+  "9780201379624",
+  "4003994155486",
+  "7376280645021",
+  "3012345678905",
+  "1234567890128",
+  "9783161484100",
+  "4006381333932",
+  "5012345678901",
+  "5901234123458",
+  "0123456789013",
+  "7376280645022"
+];
 
 function handleScan(code) {
   if (!codesFound.has(code)) {
@@ -164,5 +181,6 @@ function endGame() {
 </script>
 </body>
 </html>
+
 
 
