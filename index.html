@@ -39,12 +39,16 @@ video {
   </div>
 
   <!-- Jeu -->
-  <div id="game">
-    <h2 id="countdown"></h2>
-    <h3 id="timer">Temps : 0.00s</h3>
-    <p id="progress">Codes validés : 0 / 15</p>
-    <video id="video" autoplay></video>
+<div id="game">
+  <video id="video" autoplay></video>
+
+  <!-- Overlay pour superposer score, chrono et cadre de scan -->
+  <div id="overlay">
+    <div id="scan-frame"></div>
+    <div id="score">Codes validés : 0 / 15</div>
+    <div id="timer">Temps : 0.00s</div>
   </div>
+</div>
 
   <!-- Résultats -->
   <div id="result">
@@ -194,6 +198,7 @@ function endGame() {
 </script>
 </body>
 </html>
+
 
 
 
