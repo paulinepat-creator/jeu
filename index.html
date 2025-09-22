@@ -70,12 +70,14 @@ async function startCamera() {
   const videoElem = document.getElementById("video");
 
   try {
-    const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
-    const firstDeviceId = devices[0].deviceId;
+codeReader.decodeFromConstraints(
+  { video: { facingMode: "environment" } }, // caméra arrière
+  videoElem,
+  (result, err) => {
+    if (result) handleScan(result.text);
+  }
+);
 
-    codeReader.decodeFromVideoDevice(firstDeviceId, videoElem, (result, err) => {
-      if (result) handleScan(result.text);
-    });
 
     // Lancer le compte à rebours
     countdown(3);
@@ -162,3 +164,4 @@ function endGame() {
 </script>
 </body>
 </html>
+
