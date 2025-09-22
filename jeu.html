@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Jeu des Codes-Barres</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Librairie ZXing pour scanner -->
+  <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 10px; }
+    #game, #result { display: none; }
+    video { width: 100%; max-width: 400px; border: 3px solid #000; border-radius: 10px; }
+    .hidden { display: none; }
+    .valid { color: green; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <!-- Écran d’accueil -->
+  <div id="start">
+    <h2>Bienvenue dans le jeu 🎮</h2>
+    <p>Entrez vos informations pour commencer :</p>
+    <input id="pseudo" placeholder="Pseudo"><br><br>
+    <input id="phone" placeholder="Téléphone"><br><br>
+    <button onclick="startGame()">Démarrer</button>
+  </div>
+
+  <!-- Jeu -->
+  <div id="game">
+    <h2 id="countdown"></h2>
+    <h3 id="timer">Temps : 0.00s</h3>
+    <p id="progress">Codes validés : 0 / 15</p>
+    <video id="video" autoplay></video>
+  </div>
+
+  <!-- Résultats -->
+  <div id="result">
+    <h2>🎉 Bravo <span id="playerName"></span> !</h2>
+    <p>Ton temps : <span id="finalTime"></span></p>
+    <h3>Classement :</h3>
+    <ol id="ranking"></ol>
+    <p>Merci d’avoir joué 🙌</p>
+  </div>
+
+  <!-- Petit son de validation -->
+  <audio id="beep" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+
+<script>
+let player = {};
+let codesFound = new Set();
+let maxCodes = 15;
+let startTime, timerInterval;
+let codeReader;
+
+function startGame() {
+  const pseudo = document.getElementById("pseudo").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  if (!pseudo || !phone) {
+    alert("Merci de remplir tous les champs !");
+    return;
+  }
+  player = { pseudo, phone };
+  document.getElementById("start").style.display = "none";
+  document.getElementById("game").style.display = "block";
+  startCamera();
+}
+
+async function startCamera() {
+  codeReader = new ZXing.BrowserBarcodeReader();
+  const videoElem = document.getElementById("video");
+
+  try {
+    const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
+    const firstDeviceId = devices[0].deviceId;
+
+    codeReader.decodeFromVideoDevice(firstDeviceId, videoElem, (result, err) => {
+      if (result) handleScan(result.text);
+    });
+
+    // Lancer le compte à rebours
+    countdown(3);
+
+  } catch (e) {
+    console.error(e);
+    alert("Impossible d'accéder à la caméra");
+  }
+}
+
+function countdown(n) {
+  const el = document.getElementById("countdown");
+  let counter = n;
+  el.innerText = counter;
+  const interval = setInterval(() => {
+    counter--;
+    if (counter > 0) {
+      el.innerText = counter;
+    } else {
+      clearInterval(interval);
+      el.innerText = "GO!";
+      setTimeout(() => el.innerText = "", 1000);
+      startTimer();
+    }
+  }, 1000);
+}
+
+function startTimer() {
+  startTime = Date.now();
+  timerInterval = setInterval(() => {
+    const elapsed = (Date.now() - startTime) / 1000;
+    document.getElementById("timer").innerText = "Temps : " + elapsed.toFixed(2) + "s";
+  }, 100);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  const elapsed = (Date.now() - startTime) / 1000;
+  return elapsed.toFixed(2);
+}
+
+function handleScan(code) {
+  if (!codesFound.has(code)) {
+    codesFound.add(code);
+
+    // vibration + son
+    if (navigator.vibrate) navigator.vibrate(200);
+    document.getElementById("beep").play();
+
+    document.getElementById("progress").innerText =
+      "Codes validés : " + codesFound.size + " / " + maxCodes;
+
+    if (codesFound.size >= maxCodes) {
+      endGame();
+    }
+  }
+}
+
+function endGame() {
+  const finalTime = stopTimer();
+  codeReader.reset();
+
+  // Sauvegarder score
+  let scores = JSON.parse(localStorage.getItem("scores") || "[]");
+  scores.push({ pseudo: player.pseudo, phone: player.phone, time: parseFloat(finalTime) });
+  scores.sort((a, b) => a.time - b.time);
+  localStorage.setItem("scores", JSON.stringify(scores));
+
+  // Afficher résultats
+  document.getElementById("game").style.display = "none";
+  document.getElementById("result").style.display = "block";
+  document.getElementById("playerName").innerText = player.pseudo;
+  document.getElementById("finalTime").innerText = finalTime + "s";
+
+  // Classement
+  const rankingElem = document.getElementById("ranking");
+  rankingElem.innerHTML = "";
+  scores.forEach((s, i) => {
+    const li = document.createElement("li");
+    li.innerText = `${s.pseudo} - ${s.time.toFixed(2)}s`;
+    rankingElem.appendChild(li);
+  });
+}
+</script>
+</body>
+</html>
