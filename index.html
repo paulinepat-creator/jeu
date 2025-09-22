@@ -137,7 +137,7 @@ const validCodes = [
 ];
 
 function handleScan(code) {
-  if (!codesFound.has(code)) {
+  if (validCodes.includes(code) && !codesFound.has(code)) {
     codesFound.add(code);
 
     // vibration + son
@@ -181,6 +181,7 @@ function endGame() {
 </script>
 </body>
 </html>
+
 
 
 
